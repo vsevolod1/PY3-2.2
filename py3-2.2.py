@@ -1,37 +1,47 @@
 import json
-from pprint import pprint
 import operator
+import re
 
-#функция для получения отсортированного списка
-def sorted_list(word_list):
-    word_list = [x for x in word_list if (len(x) >= 6
-        and x.startswith('<')==False and x.startswith('href')==False)]
 
-    lsWord = {}
-    for key in word_list:
+# функция для получения отсортированного списка
+def sorted_list(words_list):
+    # очистка от html-тегов и лишних символов
+    for num, word in enumerate(words_list):
+        word = re.sub('<[^<]+?>', '', word)
+        word = re.sub('[^А-Яа-яA-Za-z]', '', word)
+        words_list[num] = word
+
+    # отбор слов, размер которых не меньше 6
+    words_list = [x for x in words_list if (len(x) >= 6 and not x.startswith('href'))]
+
+    # подведение статистики
+    ls_word = {}
+    for key in words_list:
         key = key.lower()
-        if key in lsWord:
-            value = lsWord[key]
-            lsWord[key]=value+1
+        if key in ls_word:
+            value = ls_word[key]
+            ls_word[key] = value + 1
         else:
-            lsWord[key]=1
+            ls_word[key] = 1
 
-    sorted_lsWord = sorted(lsWord.items(), key=operator.itemgetter(1), reverse=True)
-    return sorted_lsWord;
+    # сортировка и вывод
+    sorted_ls_word = sorted(ls_word.items(), key=operator.itemgetter(1), reverse=True)
+    # print(sorted_ls_word)
+    return sorted_ls_word
 
-#функция для вывода результата
-def print_result (word_list, i):
-    i=int(i)
-    j = 0
+
+# функция для вывода результата
+def print_result(word_list, i):
+    i = int(i)
     print('––––––––––––')
     print('Топ-{} слов и частота их употребления:'.format(i))
-    while j < i:
-        print('{} - {}'.format(sorted_list(word_list)[j][0], sorted_list(word_list)[j][1]))
-        j += 1
+    for num in range(0, i):
+        print('{} - {}'.format(sorted_list(word_list)[num][0], sorted_list(word_list)[num][1]))
     print('––––––––––––')
 
-#функция для вывода данных из указанного файла
-def top_words (filename, encode, top_num):
+
+# функция для вывода данных из указанного файла
+def top_words(filename, encode, top_num):
     with open(filename, encoding=encode) as news_file:
         articles = json.load(news_file)
         descriptions = ''
@@ -54,7 +64,7 @@ def top_words (filename, encode, top_num):
 
             print_result(word_list, top_num)
 
-#вывод необходимых списков
+# вывод необходимых списков
 input1 = ''
 while input1.lower() != 'q':
     input1 = input('Выберите страну:\n1 - Африка\n2 - Кипр\n3 - Франция\n4 - Италия\nq - выйти\n')
@@ -62,7 +72,7 @@ while input1.lower() != 'q':
         break
     input2 = input('Введите количество слов в топе: ')
     if input1 == '1':
-        top_words('news/newsafr.json', 'utf-8', input2)
+        top_words('./news/newsafr.json', 'utf-8', input2)
     if input1 == '2':
         top_words('news/newscy.json', 'koi8-r', input2)
     if input1 == '3':
